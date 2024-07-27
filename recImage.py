@@ -4,18 +4,28 @@ from flask import Flask, request
 import json
 from google.cloud import datastore
 import uuid
+import os
 
 app = Flask(__name__)
 
 # Ler a chave da API do arquivo
-with open('apikey.txt', 'r') as file:
-    apikey = file.read().strip()
+apikey = os.getenv('API_KEY')
 
 genai.configure(api_key=apikey)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Inicializar o cliente Datastore
-datastore_client = datastore.Client.from_service_account_json('firebase.json')
+# Acessar a variável de ambiente
+datastore_credentials_str = os.getenv('DATASTORE_CREDENTIALS')
+
+# Verificar se as credenciais foram lidas corretamente
+if datastore_credentials_str:
+    # Carregar as credenciais diretamente
+    datastore_credentials = json.loads(datastore_credentials_str)
+
+    # Inicializar o cliente Datastore diretamente com as credenciais
+    datastore_client = datastore.Client.from_service_account_info(datastore_credentials)
+else:
+    raise Exception("Não foi possível ler as credenciais do Datastore")
 
 @app.route("/reconhecer-imagem", methods = ['POST'])
 def recImage():
