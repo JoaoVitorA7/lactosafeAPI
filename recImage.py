@@ -37,11 +37,15 @@ def recImage():
     response.resolve()
     resposta_alimento = json.loads(response.text)
 
-    response_risco = model.generate_content('O alimento é: ' + resposta_alimento['alimento_nome'] + ', eu quero o risco de um alimento ter lactose e eu quero que você se baseie nos seguintes critérios: Inexistente (0): Definição: Alimentos que não contêm lactose sob nenhuma circunstância; Baixo (1-20): Definição: Alimentos que podem conter lactose em quantidades muito pequenas, geralmente devido a contaminação cruzada ou adição mínima; Médio (21-50): Definição: Alimentos que frequentemente contêm lactose em quantidades moderadas, seja como ingrediente primário ou secundário; Alto (51-80): Definição: Alimentos que geralmente contêm uma quantidade significativa de lactose e são comuns em dietas que incluem produtos lácteos; Muito Alto (81-100): Definição: Alimentos que contêm uma quantidade substancial de lactose e são essencialmente produtos lácteos. Retorne a resposta nesse seguinte formato, apenas preencha sem alterar nada: {"risco_int": "número inteiro do risco", "risco_str": "classificação do risco"}',stream=True)
-    response_risco.resolve()
-    resposta_risco = json.loads(response_risco.text)
-
-    respostaFinal = {**resposta_alimento, **resposta_risco}
+    if resposta_alimento['e_alimento'] == "True":
+        response_risco = model.generate_content('O alimento é: ' + resposta_alimento['alimento_nome'] + ', eu quero o risco de um alimento ter lactose e eu quero que você se baseie nos seguintes critérios: Inexistente (0): Definição: Alimentos que não contêm lactose sob nenhuma circunstância; Baixo (1-20): Definição: Alimentos que podem conter lactose em quantidades muito pequenas, geralmente devido a contaminação cruzada ou adição mínima; Médio (21-50): Definição: Alimentos que frequentemente contêm lactose em quantidades moderadas, seja como ingrediente primário ou secundário; Alto (51-80): Definição: Alimentos que geralmente contêm uma quantidade significativa de lactose e são comuns em dietas que incluem produtos lácteos; Muito Alto (81-100): Definição: Alimentos que contêm uma quantidade substancial de lactose e são essencialmente produtos lácteos. Retorne a resposta nesse seguinte formato, apenas preencha sem alterar nada: {"risco_int": "número inteiro do risco", "risco_str": "classificação do risco"}',stream=True)
+        response_risco.resolve()
+        resposta_risco = json.loads(response_risco.text)
+        respostaFinal = {**resposta_alimento, **resposta_risco}
+    
+    else:
+        respostaFinal = resposta_alimento
+        
     # Gerar um ID único para o alimento
     alimento_id = str(uuid.uuid4())
 
