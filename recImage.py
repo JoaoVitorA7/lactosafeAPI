@@ -32,11 +32,16 @@ def recImage():
     img = request.files['image']
     user_id = request.form['user_id']
     imagem = PIL.Image.open(img)
-    response = model.generate_content([imagem,'Eu quero a resposta nesse formato: {"Variavel1": "Valor1", "Variavel2": "Valor2"}, vou deixar os nomes para as variáveis em parenteses para você saber qual nome colocar, se a imagem não for de um alimento preencha a variável "Check" como "False" e retorne apenas ela, em caso dela ser "True" continue para as outras variáveis: É alimento? (Check); Qual alimento é esse? (alimento); Todos os ingredientes na receita que podem conter lactose (ingredientes); Quantidade de proteina gordura e carboidrato em 100g(Proteina) (Gordura) (Carboidrato); Link dessa receita sem lactose (Link); Quantidade de calorias em 100g (Calorias)'], stream=True)
-    response.resolve()
-    print(response.text)
-    respostaFinal = json.loads(response.text)
     
+    response = model.generate_content([imagem,'Eu quero a resposta exatamente nesse formato e você só preence os valores sem mudar nada na estrutura, não coloque a palavra json na resposta, apenas preence os valores, obs se a imagem não for de alimento apenas preencha a primeira variavel chamada e_alimento como False: {"e_alimento": "True/False" , "alimento_nome": "Valor", "ingredientes_com_lactose": "["ingrediente1","ingrediente2"...]", "quantidade_proteina": "Valor", "quantidade_gordura": "Valor", "quantidade_carboidrato": "Valor", "receitasemlactose_link": "link", "quantidade_calorias": "Valor". Obs: O valor de proteina, carboidrato, gordura e caloria é em 100g do alimento.)'], stream=True)
+    response.resolve()
+    resposta_alimento = json.loads(response.text)
+
+    response_risco = model.generate_content('O alimento é: ' + resposta_alimento['alimento_nome'] + ', eu quero o risco de um alimento ter lactose e eu quero que você se baseie nos seguintes critérios: Inexistente (0): Definição: Alimentos que não contêm lactose sob nenhuma circunstância; Baixo (1-20): Definição: Alimentos que podem conter lactose em quantidades muito pequenas, geralmente devido a contaminação cruzada ou adição mínima; Médio (21-50): Definição: Alimentos que frequentemente contêm lactose em quantidades moderadas, seja como ingrediente primário ou secundário; Alto (51-80): Definição: Alimentos que geralmente contêm uma quantidade significativa de lactose e são comuns em dietas que incluem produtos lácteos; Muito Alto (81-100): Definição: Alimentos que contêm uma quantidade substancial de lactose e são essencialmente produtos lácteos. Retorne a resposta nesse seguinte formato, apenas preencha sem alterar nada: {"risco_int": "número inteiro do risco", "risco_str": "classificação do risco"}',stream=True)
+    response_risco.resolve()
+    resposta_risco = json.loads(response_risco.text)
+
+    respostaFinal = {**resposta_alimento, **resposta_risco}
     # Gerar um ID único para o alimento
     alimento_id = str(uuid.uuid4())
 
